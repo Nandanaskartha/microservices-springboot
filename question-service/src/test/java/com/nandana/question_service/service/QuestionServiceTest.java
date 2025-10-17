@@ -120,20 +120,20 @@ class QuestionServiceTest {
 
     @Test
     void getScoreFromResponses() {
-//        Responses r1 = new Responses(1, "4");  // correct
-//        Responses r2 = new Responses(2, "3");  // wrong
-//        System.out.println("q1 ID: " + q1.getQuestionid());
-//        System.out.println("q2 ID: " + q2.getQuestionid());
-//        List<Responses> responses = Arrays.asList(r1, r2);
-//
-//        when(questionDao.findById(1)).thenReturn(Optional.of(q1));
-//        when(questionDao.findById(2)).thenReturn(Optional.of(q2));
-//
-//        ResponseEntity<Integer> result = questionService.getScoreFromResponses(responses);
+        Responses r1 = new Responses(1, "4");  // correct
+        Responses r2 = new Responses(2, "3");  // wrong
+        System.out.println("q1 ID: " + q1.getQuestionid());
+        System.out.println("q2 ID: " + q2.getQuestionid());
+        List<Responses> responses = Arrays.asList(r1, r2);
 
-//        assertEquals(1, result.getBody());
-//        assertEquals(HttpStatus.OK, result.getStatusCode());
-//        verify(questionDao, times(1)).findById(1);
-//        verify(questionDao, times(1)).findById(2);
+        when(questionDao.findById(1)).thenReturn(Optional.of(q1));
+        when(questionDao.findById(2)).thenReturn(Optional.of(q2));
+
+        ResponseEntity<Integer> result = questionService.getScoreFromResponses(responses);
+
+        assertEquals(Integer.valueOf(1), result.getBody());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        verify(questionDao, times(1)).findById(1);
+        verify(questionDao, times(1)).findById(2);
     }
 }

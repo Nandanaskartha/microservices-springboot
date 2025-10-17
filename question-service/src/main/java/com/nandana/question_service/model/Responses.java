@@ -10,5 +10,7 @@ public class Responses {
     private String answer;
 
     public Responses(int i, String ans) {
+        this.id=i;
+        this.answer=ans;
     }
 }
