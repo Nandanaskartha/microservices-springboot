@@ -25,7 +25,7 @@ jobs:
     - name : Build question service docker image
       run: |
         docker build -t nandanaskartha/question-service:latest \
-        docker build -t nandanaskartha/question-service:${{ github.sha }} \
+                     -t nandanaskartha/question-service:${{ github.sha }} \
         ./question-service
         docker push nandanaskartha/question-service:latest  
         docker push nandanaskartha/question-service:${{ github.sha }}
@@ -33,7 +33,7 @@ jobs:
     - name: Building and pushing the quiz service
       run: |
         docker build -t nandanaskartha/quiz-service:latest \
-        docker build -t nandanaskartha/quiz-service:${{ github.sha }} \
+                     -t nandanaskartha/quiz-service:${{ github.sha }} \
         ./quiz-service
         docker push nandanaskartha/quiz-service:latest
         docker push nandanaskartha/quiz-service:${{ github.sha }}
@@ -41,7 +41,7 @@ jobs:
     - name : Build eureka service docker image
       run: |
         docker build -t nandanaskartha/service-registry:latest \
-        docker build -t nandanaskartha/service-registry:${{ github.sha }} \
+                     -t nandanaskartha/service-registry:${{ github.sha }} \
         ./service-registry
         docker push nandanaskartha/service-registry:latest  
         docker push nandanaskartha/service-registry:${{ github.sha }}
@@ -49,7 +49,7 @@ jobs:
     - name: Building and pushing the api gateway 
       run: |
         docker build -t nandanaskartha/api-gateway:latest \
-        docker build -t nandanaskartha/api-gateway:${{ github.sha }} \
+                     -t nandanaskartha/api-gateway:${{ github.sha }} \
         ./api-gateway
         docker push nandanaskartha/api-gateway:latest
         docker push nandanaskartha/api-gateway:${{ github.sha }}
