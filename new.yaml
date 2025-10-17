@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    ports: 
+      - "5432:5432"
+    networks: 
+      - microservices-backend
+    environment: 
+      - POSTGRES_DB=quizquestiondb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin123
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d quizquestiondb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  eureka-service:
+    build:
+      context: ./service-registry
+    container_name: eureka-service
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-backend
+    environment:
+      - EUREKA_SERVICE=Started EUREKA SERVER
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8765:8765"
+    networks: 
+      - microservices-backend
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    restart: on-failure
+
+  question-service:
+    build:
+      context: ./question-service
+    container_name: question-service
+    ports:
+      - "8081:8081"
+    networks: 
+      - microservices-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-service:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quizquestiondb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    restart: on-failure
+
+  quiz-service:
+    build:
+      context: ./quiz-service
+    container_name: quiz-service
+    ports:
+      - "8090:8090"
+    networks: 
+      - microservices-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-service:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/quizquestiondb
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:8761/eureka/
+    restart: on-failure
+
+networks:
+  microservices-backend:
+    driver: bridge
+
+volumes:
+  postgres-data:
