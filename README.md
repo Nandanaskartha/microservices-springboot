@@ -32,8 +32,8 @@ This application consists of 4 microservices:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
+git clone https://github.com/Nandanaskartha/microservices-springboot.git
+cd microservices-springboot
 ```
 
 2. Start all services:
