@@ -5,6 +5,8 @@ on:
     branches: 
     - main
 
+env:
+  DOCKER_BUILDKIT: 1
 
 jobs:
   build:
@@ -22,27 +24,36 @@ jobs:
 
     - name : Build question service docker image
       run: |
-        docker build -t nandanaskartha/question-service:latest ./question-service
+        docker build -t nandanaskartha/question-service:latest \
+        docker build -t nandanaskartha/question-service:${{ github.sha }} \
+        ./question-service
         docker push nandanaskartha/question-service:latest  
+        docker push nandanaskartha/question-service:${{ github.sha }}
 
     - name: Building and pushing the quiz service
       run: |
-        docker build -t nandanaskartha/quiz-service:latest ./quiz-service
+        docker build -t nandanaskartha/quiz-service:latest \
+        docker build -t nandanaskartha/quiz-service:${{ github.sha }} \
+        ./quiz-service
         docker push nandanaskartha/quiz-service:latest
+        docker push nandanaskartha/quiz-service:${{ github.sha }}
 
     - name : Build eureka service docker image
       run: |
-        docker build -t nandanaskartha/service-registry:latest ./service-registry
+        docker build -t nandanaskartha/service-registry:latest \
+        docker build -t nandanaskartha/service-registry:${{ github.sha }} \
+        ./service-registry
         docker push nandanaskartha/service-registry:latest  
+        docker push nandanaskartha/service-registry:${{ github.sha }}
 
     - name: Building and pushing the api gateway 
       run: |
-        docker build -t nandanaskartha/api-gateway:latest ./api-gateway
+        docker build -t nandanaskartha/api-gateway:latest \
+        docker build -t nandanaskartha/api-gateway:${{ github.sha }} \
+        ./api-gateway
         docker push nandanaskartha/api-gateway:latest
+        docker push nandanaskartha/api-gateway:${{ github.sha }}
 
-    - name: Build PostgreSQL Image 
-      run: | 
-        docker build -t nandanaskartha/postgres:latest ./postgres 
-        docker push nandanaskartha/postgres:latest 
+
     
 
