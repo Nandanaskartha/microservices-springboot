@@ -41,6 +41,11 @@ public class QuestionController {
         return questionService.deleteQuestionById(id);
     }
 
+    @PutMapping("/update/{id}")
+    public ResponseEntity<String> updateQuestion(@PathVariable int id, @RequestBody Question question){
+        return questionService.updateQuestionById(id, question);
+    }
+
     @GetMapping("/generate")
     public ResponseEntity<List<Integer>> getQuestionsforQuiz(@RequestParam String category, @RequestParam int numQ){
         return questionService.getQuestionsforQuiz(category, numQ);

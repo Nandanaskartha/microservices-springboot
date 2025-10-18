@@ -90,4 +90,21 @@ public class QuestionService {
         }
         return new ResponseEntity<>("Question ID is not valid", HttpStatus.NOT_FOUND);
     }
+
+    public ResponseEntity<String> updateQuestionById(int id, Question question) {
+        Optional<Question> question1 =questionDao.findById(id);
+        if(question1.isPresent()){
+            question1.get().setQuestiontitle(question.getQuestiontitle());
+            question1.get().setCategory(question.getCategory());
+            question1.get().setDifficultylevel(question.getDifficultylevel());
+            question1.get().setOption1(question.getOption1());
+            question1.get().setOption2(question.getOption2());
+            question1.get().setOption3(question.getOption3());
+            question1.get().setOption4(question.getOption4());
+            question1.get().setRightanswer(question.getRightanswer());
+            String response = "Success";
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Question ID is not valid", HttpStatus.NOT_FOUND);
+    }
 }
