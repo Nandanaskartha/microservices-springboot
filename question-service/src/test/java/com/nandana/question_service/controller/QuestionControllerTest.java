@@ -121,4 +121,14 @@ class QuestionControllerTest {
         assertEquals(HttpStatus.OK, score.getStatusCode());
         verify(questionService, times(1)).getScoreFromResponses(responses);
     }
+
+    @Test
+    void deleteQuestion() {
+        int questionId=1;
+        when(questionService.deleteQuestionById(questionId)).thenReturn(ResponseEntity.ok("Success"));
+        ResponseEntity<String>response = questionController.deleteQuestion(questionId);
+        assertEquals("Success", response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(questionService, times(1)).deleteQuestionById(questionId);
+    }
 }

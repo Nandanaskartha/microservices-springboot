@@ -36,6 +36,11 @@ public class QuestionController {
         return questionService.addQuestion(question);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteQuestion(@PathVariable int id){
+        return questionService.deleteQuestionById(id);
+    }
+
     @GetMapping("/generate")
     public ResponseEntity<List<Integer>> getQuestionsforQuiz(@RequestParam String category, @RequestParam int numQ){
         return questionService.getQuestionsforQuiz(category, numQ);

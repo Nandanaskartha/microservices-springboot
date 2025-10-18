@@ -136,4 +136,20 @@ class QuestionServiceTest {
         verify(questionDao, times(1)).findById(1);
         verify(questionDao, times(1)).findById(2);
     }
+
+    @Test
+    void deleteQuestionById() {
+        int questionId=1;
+        when(questionDao.findById(questionId)).thenReturn(Optional.of(q1));
+        doNothing().when(questionDao).deleteById(questionId);
+        ResponseEntity<String>response = questionService.deleteQuestionById(questionId);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Deleted question with id: 1"));
+        assertTrue(response.getBody().contains("from Category: Math"));
+
+        verify(questionDao, times(1)).deleteById(questionId);
+        verify(questionDao, times(1)).findById(questionId);
+    }
 }
