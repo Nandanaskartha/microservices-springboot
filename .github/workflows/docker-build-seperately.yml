@@ -1,0 +1,171 @@
+name: Building and pushing services based on changed folder
+
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - 'service-registry/**'
+    - 'api-gateway/**'
+    - 'question-service/**'
+    - 'quiz-service/**'
+    - 'docker-compose.yaml'
+  pull_request:
+    branches:
+    - main
+    paths:
+    - 'service-registry/**'
+    - 'api-gateway/**'
+    - 'question-service/**'
+    - 'quiz-service/**'
+
+env:
+  REGISTRY: docker.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  detect-changes:
+    name: Detect changed services 
+    runs-on: ubuntu-latest
+    outputs: 
+      services: ${{ steps.changes.outputs.services }}
+      matrix: ${{ steps.generate-matrix.outputs.matrix }} 
+
+    steps:
+    - name: Checking out repositroy
+      uses: actions/checkout@v4
+      with: 
+        fetch-depth: 0
+      
+    - name: Detecting changed services
+      id : changes
+      run: |
+
+        if [ "${{ github.event_name }}" = "push" ]; then
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        else
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+        fi
+        echo "Changed files"
+        echo "$CHANGED_FILES"
+
+        SERVICES=()
+        if echo "$CHANGED_FILES" | grep -q "^service-registry/" ; then
+          SERVICES+=("service-registry")
+        fi
+
+        if echo "$CHANGED_FILES" | grep -q "^api-gateway/"; then
+          SERVICES+=("api-gateway")
+        fi
+          
+        if echo "$CHANGED_FILES" | grep -q "^question-service/"; then
+          SERVICES+=("question-service")
+        fi
+          
+        if echo "$CHANGED_FILES" | grep -q "^quiz-service/"; then
+          SERVICES+=("quiz-service")
+        fi
+
+        SERVICES_JSON=$(printf '%s\n' "$SERVICES[@]" | jq -R . | jq -s .)
+        echo "services=$SERVICES_JSON" >> $GITHUB_OUTPUT
+        echo "Changed services $SERVICES_JSON"
+
+    - name: Generating build MATRIX
+      id: generate-matrix
+      run: |
+        SERVICES='${{ steps.changes.outputs.services }}'
+        if [ "$SERVICES" = "[]" ] || [ "$SERVICES" = "" ]; then
+          echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
+          echo "No services changed"
+        
+        else
+          MATRIX="{"include":["
+          FIRST=true
+
+          for service in $(echo "$SERVICES" | jq -r '.[]'); do
+            if [ "$FIRST" = false ]; then
+              MATRIX="$MATRIX,"
+            fi
+            case $service in 
+              "service-registry")
+                MATRIX="$MATRIX{"service":"service-registry","context":"./service-registry","dockerfile":"./service-registry/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/service-registry"}"
+                ;;
+              "question-service")
+                MATRIX="$MATRIX{"service":"question-service","context":"./question-service","dockerfile":"./question-service/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/question-service"}"
+                ;;
+              "quiz-service")
+                MATRIX="$MATRIX{"service":"quiz-service","context":"./quiz-service","dockerfile":"./quiz-service/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/quiz-service"}"
+                ;;
+              "api-gateway")
+                MATRIX="$MATRIX{"service":"api-gateway","context":"./api-gateway","dockerfile":"./api-gateway/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/api-gateway"}"
+                ;;
+            esac
+            FIRST=false
+          done
+
+          MATRIX="$MATRIX]}"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Build matrix: $MATRIX"
+        fi
+
+  build-and-push:
+    name: Build and push docker images
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.detect-changes.outputs.matrix).include[0] !=null }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+
+    steps:
+    - name: Checkout 
+      uses: actions/checkout@v4
+
+    - name: Using buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to docker
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Generating tags and latbles from metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with: 
+        images: ${{ matrix.image }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with: 
+        context: ${{ matrix.context }}
+        file: ${{ matrix.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha, mode=max
+        platforms: linux/amd64
+
+    - name: Image digest
+      run: echo "Image built and pushed - ${{ matrix.service }} -> ${{ steps.meta.outputs.tags }}"
+
+
+
+
+
+
+
+
+        
+
+
+
+
