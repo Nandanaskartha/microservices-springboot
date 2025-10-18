@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuestionService {
@@ -77,5 +78,16 @@ public class QuestionService {
                 right++;
         }
         return new ResponseEntity<>(right, HttpStatus.OK);
+    }
+
+    public ResponseEntity<String> deleteQuestionById(int id) {
+        Optional<Question> question =questionDao.findById(id);
+        if(question.isPresent()){
+            String cat = question.get().getCategory();
+            questionDao.deleteById(id);
+            String response = "Deleted question with id: " + id + " from Category: " + cat + ".";
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Question ID is not valid", HttpStatus.NOT_FOUND);
     }
 }
