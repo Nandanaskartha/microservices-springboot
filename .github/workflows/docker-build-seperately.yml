@@ -78,30 +78,32 @@ jobs:
       id: generate-matrix
       run: |
         SERVICES='${{ steps.changes.outputs.services }}'
+        
         if [ "$SERVICES" = "[]" ] || [ "$SERVICES" = "" ]; then
           echo 'matrix={"include":[]}' >> $GITHUB_OUTPUT
           echo "No services changed"
         
         else
-          MATRIX="{"include":["
+          MATRIX="{\"include\":["
           FIRST=true
 
           for service in $(echo "$SERVICES" | jq -r '.[]'); do
             if [ "$FIRST" = false ]; then
               MATRIX="$MATRIX,"
             fi
+            
             case $service in 
               "service-registry")
-                MATRIX="$MATRIX{"service":"service-registry","context":"./service-registry","dockerfile":"./service-registry/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/service-registry"}"
+                MATRIX="$MATRIX{\"service\":\"service-registry\",\"context\":\"./service-registry\",\"dockerfile\":\"./service-registry/Dockerfile\",\"image\":\"${{ env.REGISTRY }}/${{ github.repository_owner }}/service-registry\"}"
                 ;;
               "question-service")
-                MATRIX="$MATRIX{"service":"question-service","context":"./question-service","dockerfile":"./question-service/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/question-service"}"
+                MATRIX="$MATRIX{\"service\":\"question-service\",\"context\":\"./question-service\",\"dockerfile\":\"./question-service/Dockerfile\",\"image\":\"${{ env.REGISTRY }}/${{ github.repository_owner }}/question-service\"}"
                 ;;
               "quiz-service")
-                MATRIX="$MATRIX{"service":"quiz-service","context":"./quiz-service","dockerfile":"./quiz-service/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/quiz-service"}"
+                MATRIX="$MATRIX{\"service\":\"quiz-service\",\"context\":\"./quiz-service\",\"dockerfile\":\"./quiz-service/Dockerfile\",\"image\":\"${{ env.REGISTRY }}/${{ github.repository_owner }}/quiz-service\"}"
                 ;;
               "api-gateway")
-                MATRIX="$MATRIX{"service":"api-gateway","context":"./api-gateway","dockerfile":"./api-gateway/Dockerfile","image":"${{ env.REGISTRY }}/${{ github.repository_owner }}/api-gateway"}"
+                MATRIX="$MATRIX{\"service\":\"api-gateway\",\"context\":\"./api-gateway\",\"dockerfile\":\"./api-gateway/Dockerfile\",\"image\":\"${{ env.REGISTRY }}/${{ github.repository_owner }}/api-gateway\"}"
                 ;;
             esac
             FIRST=false
@@ -111,12 +113,12 @@ jobs:
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "Build matrix: $MATRIX"
         fi
-
+    
   build-and-push:
     name: Build and push docker images
     needs: detect-changes
     runs-on: ubuntu-latest
-    if: ${{ fromJson(needs.detect-changes.outputs.matrix).include[0] !=null }}
+    if: ${{ needs.detect-changes.outputs.services != '[]' && needs.detect-changes.outputs.services != '' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}

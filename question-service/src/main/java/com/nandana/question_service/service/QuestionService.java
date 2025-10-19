@@ -102,7 +102,8 @@ public class QuestionService {
             question1.get().setOption3(question.getOption3());
             question1.get().setOption4(question.getOption4());
             question1.get().setRightanswer(question.getRightanswer());
-            return new ResponseEntity<>("Success", HttpStatus.OK);
+            String response ="Success";
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
         return new ResponseEntity<>("Question ID is not valid", HttpStatus.NOT_FOUND);
     }
