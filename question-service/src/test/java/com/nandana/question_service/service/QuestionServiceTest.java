@@ -152,4 +152,18 @@ class QuestionServiceTest {
         verify(questionDao, times(1)).deleteById(questionId);
         verify(questionDao, times(1)).findById(questionId);
     }
+
+    @Test
+    void updateQuestionById() {
+        int questionId=1;
+        when(questionDao.findById(1)).thenReturn(Optional.of(q1));
+        when(questionDao.save(q1)).thenReturn(q1);
+        //Act
+        ResponseEntity<String> response= questionService.updateQuestionById(questionId, q1);
+        //Assert
+        assertEquals("Success", response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(questionDao, times(1)).findById(questionId);
+        verify(questionDao, times(1)).save(q1);
+    }
 }
